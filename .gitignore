@@ -1,0 +1,10 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.idea/
+.DS_Store
+# Generated on every run (only the root folders; docs/screenshots/ is kept)
+/reports/
+/screenshots/

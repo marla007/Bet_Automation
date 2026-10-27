@@ -1,0 +1,50 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:        # adds a "Run workflow" button in the Actions tab
+
+# All runs share one test user and balance, so never run two at once
+concurrency:
+  group: bet-tests
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest   # Google Chrome is pre-installed on this runner
+
+    env:
+      USER_ID: ${{ secrets.USER_ID }}
+      HEADLESS: "true"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run API tests
+        run: pytest API --html=reports/api-report.html
+
+      - name: Run UI tests
+        if: always()          # run UI tests even if API tests failed
+        run: pytest UI --html=reports/ui-report.html
+
+      - name: Upload reports and screenshots
+        if: always()          # upload even when tests fail, which is when they are needed
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            reports/
+            screenshots/
+          if-no-files-found: ignore
